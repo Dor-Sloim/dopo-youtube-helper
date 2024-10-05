@@ -242,7 +242,7 @@ function createMaterialUI(duration) {
       uiContainer.style.width = "auto";
       uiContainer.style.height = "auto";
       toggleButton.textContent = "+";
-      title.textContent = "DYH";
+      title.textContent = "Dopo";
     } else {
       content.style.display = "flex";
       uiContainer.style.width = "280px";

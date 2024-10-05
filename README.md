@@ -2,7 +2,7 @@
 
 **Dopo Youtube Helper** is a Chrome extension that enhances the YouTube viewing experience by displaying video duration and current time, allowing users to automatically close the tab when the video ends, and providing a user-friendly interface with toggle options for added functionality.
 
-![UI Screenshot](assets/image.png) 
+![UI Screenshot](assets/ui.png) 
 ## Features
 
 - **Video Duration Display**: Shows the total length of the video.
