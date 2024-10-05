@@ -110,12 +110,12 @@ function createMaterialUI(duration) {
   }
 
   const { row: durationRow, valueSpan: durationValue } = createInfoRow(
-    "Video Length:",
-    formatTime(duration) || "Unavailable 😢",
+    "Video Length",
+    duration ? formatTime(duration) : "Unavailable 😢",
     "#f44336"
   );
   const { row: currentTimeRow, valueSpan: currentTimeValue } = createInfoRow(
-    "Current Time:",
+    "Current Time",
     "Loading...",
     "#4CAF50"
   );
@@ -243,7 +243,13 @@ function createMaterialUI(duration) {
         chrome.runtime.sendMessage({ action: "closeTab" });
       }
     } else {
-      currentTimeValue.textContent = "Unavailable";
+      currentTimeValue.textContent = "Unavailable 😢";
+    }
+
+    if (duration) {
+      durationValue.textContent = formatTime(duration);
+    } else {
+      durationValue.textContent = "Unavailable 😢";
     }
   }
 
