@@ -1,6 +1,9 @@
 let isCloseTabEnabled = false;
 
 function formatTime(seconds) {
+  if (seconds == null || isNaN(seconds)) {
+    return "Unavailable";
+  }
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
@@ -102,20 +105,23 @@ function createMaterialUI(duration) {
     labelSpan.style.color = "#666666";
     const valueSpan = document.createElement("span");
     valueSpan.textContent = initialValue;
-    valueSpan.style.color = valueColor;
-    valueSpan.style.fontWeight = "500";
+    valueSpan.style.cssText = `
+      color: ${valueColor};
+      font-weight: 500;
+      font-size: 18px;
+    `;
     row.appendChild(labelSpan);
     row.appendChild(valueSpan);
     return { row, valueSpan };
   }
 
   const { row: durationRow, valueSpan: durationValue } = createInfoRow(
-    "Video Length",
+    "Video Length:",
     duration ? formatTime(duration) : "Unavailable 😢",
     "#f44336"
   );
   const { row: currentTimeRow, valueSpan: currentTimeValue } = createInfoRow(
-    "Current Time",
+    "Current Time:",
     "Loading...",
     "#4CAF50"
   );
@@ -130,15 +136,15 @@ function createMaterialUI(duration) {
       background-color: ${bgColor};
       color: white;
       border: none;
-      padding: 10px 16px;
+      padding: 8px 12px;
       border-radius: 6px;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.3s;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      width: 100%;
+      width: auto;
       margin-top: 8px;
       position: relative;
       overflow: hidden;
@@ -168,16 +174,11 @@ function createMaterialUI(duration) {
     return button;
   }
 
-  const sleepButton = createButton("Sleep", "#f44336", "#d32f2f", "#d32f2f");
-  sleepButton.addEventListener("click", () => {
-    alert("Clicked");
-  });
-
   const closeTabToggle = createButton(
     "Close Tab On Video Ends",
     "#2196F3",
     "#1E88E5",
-    "#c73e04"
+    "#f44336"
   );
 
   // Add a visual indicator for the toggle state
@@ -205,7 +206,6 @@ function createMaterialUI(duration) {
     updateCloseTabToggleState();
   });
 
-  content.appendChild(sleepButton);
   content.appendChild(closeTabToggle);
 
   uiContainer.appendChild(header);
@@ -220,7 +220,7 @@ function createMaterialUI(duration) {
       uiContainer.style.width = "auto";
       uiContainer.style.height = "auto";
       toggleButton.textContent = "+";
-      title.textContent = "Dopo";
+      title.textContent = "DYH";
     } else {
       content.style.display = "flex";
       uiContainer.style.width = "280px";
@@ -243,13 +243,7 @@ function createMaterialUI(duration) {
         chrome.runtime.sendMessage({ action: "closeTab" });
       }
     } else {
-      currentTimeValue.textContent = "Unavailable 😢";
-    }
-
-    if (duration) {
-      durationValue.textContent = formatTime(duration);
-    } else {
-      durationValue.textContent = "Unavailable 😢";
+      currentTimeValue.textContent = "Unavailable";
     }
   }
 
