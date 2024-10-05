@@ -3,7 +3,7 @@
     "name": "Dopo Youtube Helper",
     "version": "1.0",
     "host_permissions": [
-        "*://www.youtube.com/watch*"
+        "*://*.youtube.com/*"
     ],
     "permissions": [
         "activeTab",

@@ -1,4 +1,5 @@
 let isCloseTabEnabled = false;
+let isUIHidden = false;
 
 function formatTime(seconds) {
   if (seconds == null || isNaN(seconds)) {
@@ -32,6 +33,7 @@ function playIfNotRunning() {
 
 function createMaterialUI(duration) {
   const uiContainer = document.createElement("div");
+  uiContainer.id = "dopo-youtube-helper";
   uiContainer.style.cssText = `
     position: fixed;
     top: 20px;
@@ -116,12 +118,12 @@ function createMaterialUI(duration) {
   }
 
   const { row: durationRow, valueSpan: durationValue } = createInfoRow(
-    "Video Length:",
+    "Video Length",
     duration ? formatTime(duration) : "Unavailable 😢",
     "#f44336"
   );
   const { row: currentTimeRow, valueSpan: currentTimeValue } = createInfoRow(
-    "Current Time:",
+    "Current Time",
     "Loading...",
     "#4CAF50"
   );
@@ -217,9 +219,11 @@ function createMaterialUI(duration) {
   `;
   closeTabToggle.appendChild(toggleIndicator);
 
-  chrome.storage.sync.get(["isCloseTabEnabled"], (result) => {
+  chrome.storage.sync.get(["isCloseTabEnabled", "isUIHidden"], (result) => {
     isCloseTabEnabled = result.isCloseTabEnabled || false;
+    isUIHidden = result.isUIHidden || false;
     updateCloseTabToggleState();
+    updateUIVisibility();
   });
 
   closeTabToggle.addEventListener("click", () => {
@@ -233,10 +237,13 @@ function createMaterialUI(duration) {
   uiContainer.appendChild(header);
   uiContainer.appendChild(content);
 
-  let isUIHidden = false;
-
   function toggleUI() {
     isUIHidden = !isUIHidden;
+    chrome.storage.sync.set({ isUIHidden: isUIHidden });
+    updateUIVisibility();
+  }
+
+  function updateUIVisibility() {
     if (isUIHidden) {
       content.style.display = "none";
       uiContainer.style.width = "auto";
@@ -258,18 +265,20 @@ function createMaterialUI(duration) {
     const currentTime = getCurrentVideoTime();
     const duration = getVideoDuration();
 
-    if (currentTime && duration) {
+    if (currentTime != null && duration != null) {
       currentTimeValue.textContent = formatTime(currentTime);
+      durationValue.textContent = formatTime(duration);
 
       // Update progress bar
       const progress = (currentTime / duration) * 100;
       progressBar.style.width = `${progress}%`;
 
-      if (isCloseTabEnabled && duration === currentTime) {
+      if (isCloseTabEnabled && Math.abs(duration - currentTime) < 1) {
         chrome.runtime.sendMessage({ action: "closeTab" });
       }
     } else {
       currentTimeValue.textContent = "Unavailable";
+      durationValue.textContent = "Unavailable";
     }
   }
 
@@ -291,20 +300,42 @@ function createMaterialUI(duration) {
 }
 
 function displayUI() {
-  const duration = getVideoDuration();
-  const ui = createMaterialUI(duration);
-  document.body.appendChild(ui);
+  if (!document.querySelector("#dopo-youtube-helper")) {
+    const duration = getVideoDuration();
+    const ui = createMaterialUI(duration);
+    document.body.appendChild(ui);
+  }
 }
 
 function checkForVideoPlayer() {
-  if (document.querySelector("#movie_player")) {
-    displayUI();
+  const videoElement = document.querySelector("video");
+  const moviePlayer = document.querySelector("#movie_player");
+
+  if (videoElement && moviePlayer) {
+    if (videoElement.readyState >= 2) {
+      // HAVE_CURRENT_DATA or higher
+      displayUI();
+    } else {
+      videoElement.addEventListener("loadedmetadata", displayUI, {
+        once: true,
+      });
+    }
   } else {
     setTimeout(checkForVideoPlayer, 1000);
   }
 }
 
-window.addEventListener("load", checkForVideoPlayer);
+// Call checkForVideoPlayer directly instead of waiting for window load
+checkForVideoPlayer();
+
+// Add a mutation observer to handle dynamic page changes
+const observer = new MutationObserver((mutations) => {
+  if (!document.querySelector("#dopo-youtube-helper")) {
+    checkForVideoPlayer();
+  }
+});
+
+observer.observe(document.body, { childList: true, subtree: true });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log("Message received:", request);
