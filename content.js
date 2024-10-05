@@ -129,6 +129,28 @@ function createMaterialUI(duration) {
   content.appendChild(durationRow);
   content.appendChild(currentTimeRow);
 
+  // Add progress bar
+  const progressBarContainer = document.createElement("div");
+  progressBarContainer.style.cssText = `
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 12px;
+  `;
+
+  const progressBar = document.createElement("div");
+  progressBar.style.cssText = `
+    width: 0%;
+    height: 100%;
+    background-color: #4CAF50;
+    transition: width 0.3s ease;
+  `;
+
+  progressBarContainer.appendChild(progressBar);
+  content.appendChild(progressBarContainer);
+
   function createButton(text, bgColor, hoverColor, activeColor) {
     const button = document.createElement("button");
     button.textContent = text;
@@ -236,8 +258,12 @@ function createMaterialUI(duration) {
     const currentTime = getCurrentVideoTime();
     const duration = getVideoDuration();
 
-    if (currentTime) {
+    if (currentTime && duration) {
       currentTimeValue.textContent = formatTime(currentTime);
+
+      // Update progress bar
+      const progress = (currentTime / duration) * 100;
+      progressBar.style.width = `${progress}%`;
 
       if (isCloseTabEnabled && duration === currentTime) {
         chrome.runtime.sendMessage({ action: "closeTab" });
