@@ -1,5 +1,7 @@
 let isCloseTabEnabled = false;
 let isUIHidden = false;
+let isDragging = false;
+let dragOffsetX, dragOffsetY;
 
 function formatTime(seconds) {
   if (seconds == null || isNaN(seconds)) {
@@ -28,6 +30,7 @@ function playIfNotRunning() {
   const videoElement = document.querySelector("video");
   if (videoElement && videoElement.paused) {
     videoElement.play();
+    videoElement.ful;
   }
 }
 
@@ -91,6 +94,32 @@ function createMaterialUI(duration) {
     flex-direction: column;
     gap: 12px;
   `;
+
+  // Add event listeners for drag functionality
+  header.addEventListener("mousedown", (e) => {
+    if (isUIHidden) {
+      isDragging = true;
+      dragOffsetX = uiContainer.offsetLeft - e.clientX;
+      dragOffsetY = uiContainer.offsetTop - e.clientY;
+    }
+  });
+
+  document.addEventListener("mouseup", () => {
+    isDragging = false;
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (isDragging) {
+      uiContainer.style.top = `${e.clientY + dragOffsetY}px`;
+      uiContainer.style.left = `${e.clientX + dragOffsetX}px`;
+      chrome.storage.sync.set({
+        uiPosition: {
+          top: uiContainer.style.top,
+          left: uiContainer.style.left,
+        },
+      });
+    }
+  });
 
   function createInfoRow(label, initialValue, valueColor) {
     const row = document.createElement("div");
@@ -260,6 +289,14 @@ function createMaterialUI(duration) {
   }
 
   toggleButton.addEventListener("click", toggleUI);
+
+  // Load saved position from storage
+  chrome.storage.sync.get(["uiPosition"], (result) => {
+    if (result.uiPosition) {
+      uiContainer.style.top = result.uiPosition.top;
+      uiContainer.style.left = result.uiPosition.left;
+    }
+  });
 
   function updateCurrentTime() {
     const currentTime = getCurrentVideoTime();
